@@ -1,5 +1,7 @@
 # ms-webhook-api-dotnet
 
+[![CI](https://github.com/Ms-8888/ms-webhook-api-dotnet/actions/workflows/ci.yml/badge.svg)](https://github.com/Ms-8888/ms-webhook-api-dotnet/actions/workflows/ci.yml)
+
 A .NET 8 port of [ms-webhook-api](https://github.com/Ms-8888/ms-webhook-api), a webhook delivery API originally written with FastAPI. The HTTP routes, status codes, header names and snake_case JSON field names follow the Python version, so the companion dashboard ([ms-webhook-ui](https://github.com/Ms-8888/ms-webhook-ui)) is meant to work against either backend. I checked this by reading the dashboard's API client (`src/lib/api.ts`), and I ran the dashboard in a browser against this port (see below).
 
 An application sends one event to the API and gets `202 Accepted` back. A background worker then POSTs the event payload to every endpoint the tenant has registered, signs each request, and retries failures on a schedule.
