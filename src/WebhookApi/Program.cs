@@ -52,12 +52,26 @@ using (var scope = app.Services.CreateScope())
 
     if (args.Contains("seed"))
     {
-        var rawKey = ApiKeys.GenerateToken();
-        db.Tenants.Add(new Tenant { Name = "Demo Tenant", ApiKeyHash = ApiKeys.Hash(rawKey) });
+        var givenKey = Environment.GetEnvironmentVariable("SEED_API_KEY");
+        var rawKey = string.IsNullOrWhiteSpace(givenKey) ? ApiKeys.GenerateToken() : givenKey.Trim();
+        var keyHash = ApiKeys.Hash(rawKey);
+        if (db.Tenants.Any(t => t.ApiKeyHash == keyHash))
+        {
+            Console.WriteLine("A tenant with this key already exists. Nothing changed.");
+            return;
+        }
+        db.Tenants.Add(new Tenant { Name = "Demo Tenant", ApiKeyHash = keyHash });
         db.SaveChanges();
         Console.WriteLine("Demo tenant created.");
-        Console.WriteLine($"API Key: {rawKey}");
-        Console.WriteLine("Use this as the X-API-Key header in all requests.");
+        if (string.IsNullOrWhiteSpace(givenKey))
+        {
+            Console.WriteLine($"API Key: {rawKey}");
+            Console.WriteLine("Use this as the X-API-Key header in all requests.");
+        }
+        else
+        {
+            Console.WriteLine("Use the key you provided in SEED_API_KEY as the X-API-Key header.");
+        }
         return;
     }
 }
