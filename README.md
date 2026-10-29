@@ -50,13 +50,13 @@ All routes except `/health` need the `X-API-Key` header. A missing header return
 ```bash
 docker compose up -d --build
 docker compose exec app dotnet WebhookApi.dll seed   # prints a demo API key once
+curl localhost:8000/health
+```
 
 To use a key you already have (for example the shared demo key from the Python version, which is hashed the same way), pass it in `SEED_API_KEY`. Running it twice does nothing the second time:
 
 ```bash
 docker compose exec -e SEED_API_KEY=<your key> app dotnet WebhookApi.dll seed
-```
-curl localhost:8000/health
 ```
 
 ```bash
