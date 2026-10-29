@@ -1,8 +1,7 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
-COPY global.json WebhookApi.sln ./
+COPY global.json ./
 COPY src/WebhookApi/WebhookApi.csproj src/WebhookApi/
-COPY tests/WebhookApi.Tests/WebhookApi.Tests.csproj tests/WebhookApi.Tests/
 RUN dotnet restore src/WebhookApi/WebhookApi.csproj
 COPY src/ src/
 RUN dotnet publish src/WebhookApi/WebhookApi.csproj -c Release -o /app/publish --no-restore
