@@ -1,6 +1,6 @@
 # ms-webhook-api-dotnet
 
-A .NET 8 port of [ms-webhook-api](https://github.com/Ms-8888/ms-webhook-api), a webhook delivery API originally written with FastAPI. The HTTP routes, status codes, header names and snake_case JSON field names follow the Python version, so the companion dashboard ([ms-webhook-ui](https://github.com/Ms-8888/ms-webhook-ui)) is meant to work against either backend. I checked this by reading the dashboard's API client (`src/lib/api.ts`) and comparing it with the routes here; I have not run the dashboard against this port.
+A .NET 8 port of [ms-webhook-api](https://github.com/Ms-8888/ms-webhook-api), a webhook delivery API originally written with FastAPI. The HTTP routes, status codes, header names and snake_case JSON field names follow the Python version, so the companion dashboard ([ms-webhook-ui](https://github.com/Ms-8888/ms-webhook-ui)) is meant to work against either backend. I checked this by reading the dashboard's API client (`src/lib/api.ts`), and I ran the dashboard in a browser against this port (see below).
 
 An application sends one event to the API and gets `202 Accepted` back. A background worker then POSTs the event payload to every endpoint the tenant has registered, signs each request, and retries failures on a schedule.
 
@@ -96,7 +96,7 @@ What is not tested or not done:
 
 - not load tested; no performance numbers
 - not tested against real PostgreSQL or real Redis by the automated tests
-- the dashboard has not been run against this port
+- the dashboard was only checked on the Overview and Events pages; the Endpoints page was not exercised, because the container used for the check could not resolve outside host names to register an endpoint
 - never deployed
 - the dispatch worker handles one delivery at a time, and workers run inside the API process (no separate worker service, no horizontal scaling)
 - if the Redis push fails after the database commit, a first-attempt delivery stays `pending` and is not recovered automatically
@@ -118,3 +118,9 @@ MIT, see `LICENSE`.
 ## What was run by hand
 
 On one Windows machine with Docker Desktop, `docker compose up -d --build` built the image and started all three containers. Against that stack I confirmed `/health` returned `{"status":"ok","db":"ok","redis":"ok"}`, the migration created the four tables with a `jsonb` payload column, `seed` printed a key, `POST /events` with that key returned `202`, an endpoint pointing at `localhost` was rejected with `422`, a bad key returned `401`, and the 101st event in an hour returned `429` with `Retry-After` (so the Redis rate limit works). The sandbox had no outbound network access, so no delivery to a real receiver was made: a delivery to a public IP timed out, was recorded with `attempt_count` 1 and a `next_retry_at` about one minute later, and the retry worker re-queued it after that time. Delivery success against a real HTTP receiver was only exercised through the fake sender in the automated tests.
+
+## Dashboard check
+
+I ran ms-webhook-ui (non-mock mode, `VITE_MOCK=false`) in Chrome against this API started with `docker compose up`, using a key from the `seed` command and three events sent with `curl`. The Overview page showed 3 events today, and the Events page listed the three events. The browser console reported no errors. No delivery receiver was registered, so the delivery views were not checked.
+
+![Dashboard Events page running against this API](docs/dashboard-events.png)
